@@ -61,3 +61,8 @@ resource "aws_route_table" "publica" {
     Name = "route-table-publica"
   }
 }
+
+resource "aws_route_table_association" "publica" {
+  subnet_id      = aws_subnet.publica.id
+  route_table_id = aws_route_table.publica.id
+}

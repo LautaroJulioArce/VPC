@@ -66,3 +66,62 @@ resource "aws_route_table_association" "publica" {
   subnet_id      = aws_subnet.publica.id
   route_table_id = aws_route_table.publica.id
 }
+
+resource "aws_security_group" "ec2_publica" {
+  name = "ec2-publica-sg"
+
+  vpc_id = aws_vpc.main.id
+
+  ingress {
+    description = "SSH para administracion"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = [var.ssh_allowed_cidr]
+  }
+
+  ingress {
+    description = "HTTP para aplicacion web"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    description = "Salida a internet"
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "ec2-publica-sg"
+  }
+}
+
+data "aws_ami" "amazon_linux_2023" {
+  most_recent = true
+  owners      = ["amazon"]
+
+  filter {
+    name   = "name"
+    values = ["al2023-ami-2023.*-x86_64"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+}
+
+resource "aws_key_pair" "vpc_lab" {
+  key_name   = "vpc-lab-key"
+  public_key = file(pathexpand(var.ssh_public_key_path))
+
+  tags = {
+    Name = "vpc-lab-key"
+  }
+}
+

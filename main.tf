@@ -125,3 +125,22 @@ resource "aws_key_pair" "vpc_lab" {
   }
 }
 
+resource "aws_instance" "publica" {
+  ami           = data.aws_ami.amazon_linux_2023.id
+  instance_type = "t3.micro"
+
+  subnet_id = aws_subnet.publica.id
+
+  vpc_security_group_ids = [
+    aws_security_group.ec2_publica.id
+  ]
+
+  key_name = aws_key_pair.vpc_lab.key_name
+
+  associate_public_ip_address = true
+
+  tags = {
+    Name = "ec2-publica"
+  }
+}
+

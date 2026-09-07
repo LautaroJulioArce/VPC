@@ -1,9 +1,9 @@
-name: Desplegar aplicacion
-
 on:
   push:
     branches:
       - master
+    paths:
+      - 'app/**'
 
 permissions:
   id-token: write

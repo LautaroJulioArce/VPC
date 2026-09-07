@@ -185,7 +185,7 @@ resource "aws_iam_openid_connect_provider" "github" {
     "sts.amazonaws.com"
   ]
 }
-
+#en resumen, este bloque de código configura un proveedor de identidad OpenID Connect (OIDC) para GitHub Actions en AWS. Esto permite que los flujos de trabajo de GitHub Actions asuman un rol IAM en AWS y obtengan permisos temporales para interactuar con los recursos de AWS, como enviar comandos a instancias EC2 a través de SSM. La configuración incluye la URL del proveedor OIDC, la lista de clientes permitidos y las políticas que definen qué acciones pueden realizar los flujos de trabajo de GitHub Actions en AWS.
 resource "aws_iam_role" "github_actions" {
   name = "github-actions-vpc-role"
 
@@ -204,16 +204,14 @@ resource "aws_iam_role" "github_actions" {
       Condition = {
         StringEquals = {
           "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
-        }
-
-        StringLike = {
-          "token.actions.githubusercontent.com:sub" = "repo:LautaroJulioArce/VPC:ref:refs/heads/master"
+          "token.actions.githubusercontent.com:sub" = "repo:LautaroJulioArce@271591981/VPC@1322345932:ref:refs/heads/master"
         }
       }
     }]
   })
 }
 
+#este bloque de código define una política de IAM para el rol de GitHub Actions, otorgando permisos específicos para interactuar con AWS Systems Manager (SSM). La política permite a los flujos de trabajo de GitHub Actions enviar comandos a la instancia EC2 y obtener información sobre la ejecución de esos comandos. Esto facilita la administración remota y la automatización de tareas en la instancia EC2 desde los flujos de trabajo de GitHub Actions.
 resource "aws_iam_role_policy" "github_actions_ssm" {
   name = "github-actions-ssm"
   role = aws_iam_role.github_actions.id

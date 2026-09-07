@@ -142,5 +142,109 @@ resource "aws_instance" "publica" {
   tags = {
     Name = "ec2-publica"
   }
+  #este bloque de código adjunta el perfil de instancia IAM a la instancia EC2, lo que permite que la instancia utilice SSM para administración remota y otras funcionalidades proporcionadas por AWS Systems Manager.
+  iam_instance_profile = aws_iam_instance_profile.ec2_ssm.name
 }
 
+
+# este recurso es para permitir que la instancia EC2 pueda usar SSM (AWS Systems Manager) para administración remota sin necesidad de abrir puertos adicionales
+
+resource "aws_iam_role" "ec2_ssm" {
+  name = "ec2-ssm-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+
+    Statement = [{
+      Effect = "Allow"
+
+      Principal = {
+        Service = "ec2.amazonaws.com"
+      }
+
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
+#este bloque de código adjunta la política de AmazonSSMManagedInstanceCore al rol IAM creado anteriormente, lo que permite a la instancia EC2 utilizar SSM para administración remota y otras funcionalidades proporcionadas por AWS Systems Manager.
+resource "aws_iam_role_policy_attachment" "ec2_ssm" {
+  role       = aws_iam_role.ec2_ssm.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_instance_profile" "ec2_ssm" {
+  name = "ec2-ssm-instance-profile"
+  role = aws_iam_role.ec2_ssm.name
+}
+
+resource "aws_iam_openid_connect_provider" "github" {
+  url = "https://token.actions.githubusercontent.com"
+
+  client_id_list = [
+    "sts.amazonaws.com"
+  ]
+}
+
+resource "aws_iam_role" "github_actions" {
+  name = "github-actions-vpc-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+
+    Statement = [{
+      Effect = "Allow"
+
+      Principal = {
+        Federated = aws_iam_openid_connect_provider.github.arn
+      }
+
+      Action = "sts:AssumeRoleWithWebIdentity"
+
+      Condition = {
+        StringEquals = {
+          "token.actions.githubusercontent.com:aud" = "sts.amazonaws.com"
+        }
+
+        StringLike = {
+          "token.actions.githubusercontent.com:sub" = "repo:LautaroJulioArce/VPC:ref:refs/heads/master"
+        }
+      }
+    }]
+  })
+}
+
+resource "aws_iam_role_policy" "github_actions_ssm" {
+  name = "github-actions-ssm"
+  role = aws_iam_role.github_actions.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+
+    Statement = [
+      {
+        Effect = "Allow"
+
+        Action = [
+          "ssm:SendCommand"
+        ]
+
+        Resource = [
+          aws_instance.publica.arn,
+          "arn:aws:ssm:us-east-1::document/AWS-RunShellScript"
+        ]
+      },
+      {
+        Effect = "Allow"
+
+        Action = [
+          "ssm:GetCommandInvocation",
+          "ssm:ListCommandInvocations",
+          "ssm:ListCommands"
+        ]
+
+        Resource = "*"
+      }
+    ]
+  })
+}

@@ -49,7 +49,7 @@ jobs:
           COMMAND_ID=$(aws ssm send-command \
             --instance-ids "i-0a89bed63802175be" \
             --document-name "AWS-RunShellScript" \
-            --parameters 'commands=["cd /home/ec2-user/VPC/app && sudo -u ec2-user bash deploy.sh"]' \
+            --parameters 'commands=["cd /home/ec2-user/VPC && sudo -u ec2-user git pull --ff-only && cd app && sudo -u ec2-user bash deploy.sh"]' \
             --query "Command.CommandId" \
             --output text)
 

@@ -16,11 +16,33 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Descargar repositorio
+        uses: actions/checkout@v4
+
       - name: Configurar credenciales AWS
         uses: aws-actions/configure-aws-credentials@v6
         with:
           role-to-assume: arn:aws:iam::034362066129:role/github-actions-vpc-role
           aws-region: us-east-1
+
+      - name: Iniciar sesion en Amazon ECR
+        run: |
+          aws ecr get-login-password --region us-east-1 | \
+            docker login \
+              --username AWS \
+              --password-stdin 034362066129.dkr.ecr.us-east-1.amazonaws.com
+
+      - name: Construir y subir imagen a ECR
+        run: |
+          IMAGE_URI="034362066129.dkr.ecr.us-east-1.amazonaws.com/vpc-web"
+
+          docker build \
+            -t "$IMAGE_URI:${GITHUB_SHA}" \
+            -t "$IMAGE_URI:latest" \
+            ./app
+
+          docker push "$IMAGE_URI:${GITHUB_SHA}"
+          docker push "$IMAGE_URI:latest"
 
       - name: Ejecutar despliegue en EC2
         run: |

@@ -1,7 +1,3 @@
-
-
-
-#creamos un repositorio de Amazon Elastic Container Registry (ECR) llamado "vpc-web". Este repositorio se utiliza para almacenar imágenes de contenedores Docker. La configuración incluye la mutabilidad de las etiquetas de imagen (permitiendo que las etiquetas puedan cambiar), la habilitación del escaneo de imágenes al hacer push (para detectar vulnerabilidades) y la asignación de etiquetas para identificar el recurso en AWS.
 resource "aws_ecr_repository" "vpc_web" {
   name                 = "vpc-web"
   image_tag_mutability = "MUTABLE"

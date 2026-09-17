@@ -10,11 +10,14 @@ sudo docker login \
   --username AWS \
   --password-stdin "$REGISTRY"
 
+# Si la descarga falla, el contenedor actual sigue funcionando.
 sudo docker pull "$IMAGE"
 
+# En el primer despliegue puede no existir un contenedor anterior.
 sudo docker stop vpc-web-container || true
 sudo docker rm vpc-web-container || true
 
+# Recupera el servicio al reiniciar la EC2, salvo que se haya detenido manualmente.
 sudo docker run -d \
   --restart unless-stopped \
   --name vpc-web-container \

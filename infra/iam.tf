@@ -1,3 +1,4 @@
+# Rol de la EC2 para SSM.
 resource "aws_iam_role" "ec2_ssm" {
   name = "ec2-ssm-role"
 
@@ -16,16 +17,19 @@ resource "aws_iam_role" "ec2_ssm" {
   })
 }
 
+# Asigna los permisos de SSM.
 resource "aws_iam_role_policy_attachment" "ec2_ssm" {
   role       = aws_iam_role.ec2_ssm.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
+# Vincula el rol IAM con la EC2.
 resource "aws_iam_instance_profile" "ec2_ssm" {
   name = "ec2-ssm-instance-profile"
   role = aws_iam_role.ec2_ssm.name
 }
 
+# GitHub Actions -> token OIDC -> AWS STS -> credenciales temporales del rol.
 resource "aws_iam_openid_connect_provider" "github" {
   url = "https://token.actions.githubusercontent.com"
 
@@ -33,6 +37,8 @@ resource "aws_iam_openid_connect_provider" "github" {
     "sts.amazonaws.com"
   ]
 }
+
+# Rol para GitHub Actions, limitado a master del repositorio.
 resource "aws_iam_role" "github_actions" {
   name = "github-actions-vpc-role"
 
@@ -58,6 +64,7 @@ resource "aws_iam_role" "github_actions" {
   })
 }
 
+# Permite ejecutar y consultar comandos por SSM.
 resource "aws_iam_role_policy" "github_actions_ssm" {
   name = "github-actions-ssm"
   role = aws_iam_role.github_actions.id

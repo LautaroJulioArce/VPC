@@ -1,7 +1,9 @@
+# Almacena las imágenes Docker de la aplicación.
 resource "aws_ecr_repository" "vpc_web" {
   name                 = "vpc-web"
   image_tag_mutability = "MUTABLE"
 
+  # Activa el escaneo de vulnerabilidades al subir imágenes.
   image_scanning_configuration {
     scan_on_push = true
   }
@@ -11,6 +13,7 @@ resource "aws_ecr_repository" "vpc_web" {
   }
 }
 
+# Permite a GitHub Actions autenticarse en ECR y subir imágenes al repositorio.
 resource "aws_iam_role_policy" "github_actions_ecr" {
   name = "github-actions-ecr"
   role = aws_iam_role.github_actions.id
@@ -45,6 +48,7 @@ resource "aws_iam_role_policy" "github_actions_ecr" {
   })
 }
 
+# Permite a la EC2 autenticarse en ECR y descargar imágenes del repositorio.
 resource "aws_iam_role_policy" "ec2_ecr" {
   name = "ec2-ecr-read"
   role = aws_iam_role.ec2_ssm.id

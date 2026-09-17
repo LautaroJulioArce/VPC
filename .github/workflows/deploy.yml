@@ -19,6 +19,7 @@ jobs:
       - name: Descargar repositorio
         uses: actions/checkout@v4
 
+      # OIDC permite obtener credenciales temporales sin guardar claves de AWS.
       - name: Configurar credenciales AWS
         uses: aws-actions/configure-aws-credentials@v6
         with:
@@ -36,6 +37,7 @@ jobs:
         run: |
           IMAGE_URI="034362066129.dkr.ecr.us-east-1.amazonaws.com/vpc-web"
 
+          # El SHA identifica la versión; deploy.sh consume latest.
           docker build \
             -t "$IMAGE_URI:${GITHUB_SHA}" \
             -t "$IMAGE_URI:latest" \
@@ -55,6 +57,7 @@ jobs:
 
           echo "Command ID: $COMMAND_ID"
 
+          # SSM es asíncrono: enviar el comando no confirma que el despliegue terminó.
           aws ssm wait command-executed \
             --command-id "$COMMAND_ID" \
             --instance-id "i-0a89bed63802175be"

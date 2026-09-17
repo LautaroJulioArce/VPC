@@ -1,3 +1,4 @@
+# Busca la AMI más reciente de Amazon Linux 2023; la EC2 usa una AMI fija abajo.
 data "aws_ami" "amazon_linux_2023" {
   most_recent = true
   owners      = ["amazon"]
@@ -13,6 +14,7 @@ data "aws_ami" "amazon_linux_2023" {
   }
 }
 
+# Registra la clave pública para acceder a la EC2 por SSH.
 resource "aws_key_pair" "vpc_lab" {
   key_name   = "vpc-lab-key"
   public_key = file(pathexpand(var.ssh_public_key_path))
@@ -22,6 +24,7 @@ resource "aws_key_pair" "vpc_lab" {
   }
 }
 
+# Crea la EC2 que aloja la aplicación en la subnet pública.
 resource "aws_instance" "publica" {
   ami           = "ami-007dd4cdc89d5d91d"
   instance_type = "t3.micro"
@@ -39,6 +42,6 @@ resource "aws_instance" "publica" {
   tags = {
     Name = "ec2-publica"
   }
-  #este bloque de código adjunta el perfil de instancia IAM a la instancia EC2, lo que permite que la instancia utilice SSM para administración remota y otras funcionalidades proporcionadas por AWS Systems Manager.
+  # Asocia el rol con permisos de SSM y lectura de ECR.
   iam_instance_profile = aws_iam_instance_profile.ec2_ssm.name
 }
